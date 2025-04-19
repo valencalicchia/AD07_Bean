@@ -3,9 +3,13 @@
 	<item key="hasShownOverlayPopupBefore" value="true"/>
 	<item key="replaceBarOpen" value="false"/>
 	<list key="searchhistory">
+		<item value="matriculaBean"/>
 		<item value="Matricula"/>
 		<item value="matriculas"/>
 		<item value="localhost"/>
+	</list>
+	<list key="replacehistory">
+		<item value="ad7bean"/>
 	</list>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item key="selection" value="&#x09;requires java.sql;"/>

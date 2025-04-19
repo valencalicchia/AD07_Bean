@@ -9,42 +9,42 @@ import mat.AD7Bean.ModoCambiadoListener;
 
 
 public class PruebaMatricula implements ModoCambiadoListener {
-    private AD7Bean ad7bean;
+    private AD7Bean matriculaBean;
     
     public PruebaMatricula() {
-    	ad7bean = new AD7Bean();
-    	ad7bean.addModoCambiadoListener(this);
+        matriculaBean = new AD7Bean();
+        matriculaBean.addModoCambiadoListener(this);
         
         // Listado completo
         System.out.println("=== LISTADO COMPLETO ===");
-        ad7bean.cargarTodasMatriculas();
+        matriculaBean.cargarTodasMatriculas();
         imprimirMatriculas();
         
         // Listado por DNI
         System.out.println("\n=== LISTADO POR DNI (12345678A) ===");
-        ad7bean.recargarDNI("12345678A");
+        matriculaBean.recargarDNI("12345678A");
         imprimirMatriculas();
         
         // Añadir nueva matrícula
         System.out.println("\n=== AÑADIR NUEVA MATRÍCULA ===");
-        ad7bean.setDNI("12345678A");
-        ad7bean.setNombreModulo("Sistemas Informáticos");
-        ad7bean.setCurso("23-24");
-        ad7bean.setNota(7.8);
-        ad7bean.addMatricula();
+        matriculaBean.setDNI("12345678A");
+        matriculaBean.setNombreModulo("Sistemas Informáticos");
+        matriculaBean.setCurso("23-24");
+        matriculaBean.setNota(7.8);
+        matriculaBean.addMatricula();
         
         // Ver resultado
-        ad7bean.recargarDNI("12345678A");
+        matriculaBean.recargarDNI("12345678A");
         imprimirMatriculas();
     }
     
     private void imprimirMatriculas() {
         List<Matricula> lista;
         
-        if (ad7bean.getModo().equals("completo")) {
-            lista = ad7bean.getTodasMatriculas();
+        if (matriculaBean.getModo().equals("completo")) {
+            lista = matriculaBean.getTodasMatriculas();
         } else {
-            lista = ad7bean.getMatriculasDNI();
+            lista = matriculaBean.getMatriculasDNI();
         }
         
         for (Matricula m : lista) {

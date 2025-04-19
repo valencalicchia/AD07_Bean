@@ -65,6 +65,7 @@
 		<item key="JarManifestWizardPage.MANIFEST_LOCATION" value=""/>
 		<item key="JarManifestWizardPage.SEAL_JAR" value="false"/>
 		<list key="JarPackageWizardPage.DESTINATION_NAMES_ID">
+			<item value="ad7bean.jar"/>
 			<item value="AD7Bean.jar"/>
 			<item value="MatriculaBean.jar"/>
 		</list>
@@ -92,5 +93,26 @@
 	</section>
 	<section name="NewPackageWizardPage">
 		<item key="create_package_info_java" value="false"/>
+	</section>
+	<section name="FatJarPackageWizard">
+		<item key="FatJarPackageWizardPage.ANTSCRIPT_SAVE" value="false"/>
+		<item key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION" value="C:\Users\valen\CFGS\2do\AD\calicchia_valentina_alessandra_AD07_Tarea\proyectos"/>
+		<item key="FatJarPackageWizardPage.LIBRARY_HANDLING" value="2"/>
+		<item key="FatJarPackageWizardPage.LAUNCH_CONFIGURATION_SELECTION_NAME" value="PruebaMatricula - Prueba"/>
+		<item key="FatJarPackageWizardPage.DESTINATION_PATH_SELECTION" value="C:\Users\valen\CFGS\2do\AD\calicchia_valentina_alessandra_AD07_Tarea\proyectos\pruebaAd7.jar"/>
+		<list key="FatJarPackageWizardPage.DESTINATION_NAMES_ID">
+			<item value="C:\Users\valen\CFGS\2do\AD\calicchia_valentina_alessandra_AD07_Tarea\proyectos\pruebaAd7.jar"/>
+		</list>
+		<list key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION_HISTORY">
+			<item value="C:\Users\valen\CFGS\2do\AD\calicchia_valentina_alessandra_AD07_Tarea\proyectos.xml"/>
+			<item value=".xml"/>
+		</list>
+		<section name="FatJarPackageWizard.dialogBounds">
+			<item key="DIALOG_X_ORIGIN" value="227"/>
+			<item key="DIALOG_Y_ORIGIN" value="47"/>
+			<item key="DIALOG_WIDTH" value="570"/>
+			<item key="DIALOG_HEIGHT" value="550"/>
+			<item key="DIALOG_FONT_NAME" value="1|Segoe UI|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI"/>
+		</section>
 	</section>
 </section>
