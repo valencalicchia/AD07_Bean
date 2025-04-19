@@ -251,3 +251,4 @@ org.eclipse.core.runtime.CoreException: Launch configuration PruebaMatricula ref
 	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
 2025-04-18 22:23:45,856 [Worker-6: Loading available Gradle versions] INFO  o.e.b.c.i.u.g.PublishedGradleVersions - Gradle version information cache is up-to-date. Trying to read.
 2025-04-18 23:14:39,780 [Worker-4: Loading available Gradle versions] INFO  o.e.b.c.i.u.g.PublishedGradleVersions - Gradle version information cache is up-to-date. Trying to read.
+2025-04-19 12:20:02,465 [Worker-5: Loading available Gradle versions] INFO  o.e.b.c.i.u.g.PublishedGradleVersions - Gradle version information cache is up-to-date. Trying to read.
