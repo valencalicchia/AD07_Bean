@@ -1,0 +1,216 @@
+package mat;
+
+import java.util.*;
+import java.sql.*;
+import java.sql.Statement;
+import java.beans.*;
+import java.io.Serializable;
+
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.Serializable;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.EventListener;
+import java.util.EventObject;
+import java.util.List;
+
+public class MatriculaBean implements Serializable {
+
+    // Info de conexión
+    private static final String URL = "jdbc:mysql://localhost:3306/alumnos?useSSL=false&serverTimezone=Europe/Madrid&allowPublicKeyRetrieval=true";
+    private static final String USUARIO = "profesor";
+    private static final String CLAVE = "1234";
+
+    private PropertyChangeSupport observadores;
+    private ModoListener observadorModo;
+    private List<Entrada> historial;
+    private int estadoConsulta; // 0 = general, 1 = por estudiante
+
+    // Datos actuales
+    private String idEstudiante;
+    private String asignatura;
+    private String periodo;
+    private double calificacion;
+
+    // Constantes de modo
+    public static final int VISTA_COMPLETA = 0;
+    public static final int VISTA_FILTRADA = 1;
+
+    public MatriculaBean() {
+        historial = new ArrayList<>();
+        observadores = new PropertyChangeSupport(this);
+        estadoConsulta = VISTA_COMPLETA;
+    }
+
+    // Registro individual
+    private static class Entrada {
+        String id;
+        String materia;
+        String ciclo;
+        double nota;
+
+        Entrada(String id, String materia, String ciclo, double nota) {
+            this.id = id;
+            this.materia = materia;
+            this.ciclo = ciclo;
+            this.nota = nota;
+        }
+    }
+
+    // Getters y setters
+    public String getIdEstudiante() { return idEstudiante; }
+    public void setIdEstudiante(String id) { this.idEstudiante = id; }
+
+    public String getAsignatura() { return asignatura; }
+    public void setAsignatura(String asig) { this.asignatura = asig; }
+
+    public String getPeriodo() { return periodo; }
+    public void setPeriodo(String periodo) { this.periodo = periodo; }
+
+    public double getCalificacion() { return calificacion; }
+    public void setCalificacion(double nota) { this.calificacion = nota; }
+
+    // Conectar a la base de datos
+    private Connection conectar() throws SQLException, ClassNotFoundException {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        return DriverManager.getConnection(URL, USUARIO, CLAVE);
+    }
+
+    public void cargarTodo() throws ClassNotFoundException {
+        historial.clear();
+        try (Connection cn = conectar();
+             Statement stmt = cn.createStatement();
+             ResultSet datos = stmt.executeQuery("SELECT * FROM matriculas")) {
+
+            while (datos.next()) {
+                historial.add(new Entrada(
+                        datos.getString("DNI"),
+                        datos.getString("NombreModulo"),
+                        datos.getString("Curso"),
+                        datos.getDouble("Nota")
+                ));
+            }
+
+            if (!historial.isEmpty()) seleccionar(0);
+            estadoConsulta = VISTA_COMPLETA;
+            notificarCambio();
+        } catch (SQLException e) {
+            throw new ClassNotFoundException("Error al obtener todos los registros", e);
+        }
+    }
+
+    public void cargarPorDNI(String dni) throws ClassNotFoundException {
+        historial.clear();
+        try (Connection cn = conectar();
+             PreparedStatement ps = cn.prepareStatement("SELECT * FROM matriculas WHERE DNI = ?")) {
+            ps.setString(1, dni);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                historial.add(new Entrada(
+                        rs.getString("DNI"),
+                        rs.getString("NombreModulo"),
+                        rs.getString("Curso"),
+                        rs.getDouble("Nota")
+                ));
+            }
+
+            if (!historial.isEmpty()) seleccionar(0);
+            estadoConsulta = VISTA_FILTRADA;
+            notificarCambio();
+        } catch (SQLException e) {
+            throw new ClassNotFoundException("Error al filtrar registros", e);
+        }
+    }
+
+    public boolean alumnoExiste(String dni) throws ClassNotFoundException {
+        try (Connection cn = conectar();
+             PreparedStatement ps = cn.prepareStatement("SELECT 1 FROM alumnos WHERE DNI = ?")) {
+            ps.setString(1, dni);
+            return ps.executeQuery().next();
+        } catch (SQLException e) {
+            throw new ClassNotFoundException("Error al verificar existencia del alumno", e);
+        }
+    }
+
+    public void agregarRegistro() throws ClassNotFoundException {
+        if (!alumnoExiste(idEstudiante)) {
+            throw new IllegalArgumentException("El alumno con DNI " + idEstudiante + " no se encuentra registrado.");
+        }
+
+        try (Connection cn = conectar();
+             PreparedStatement ps = cn.prepareStatement("INSERT INTO matriculas VALUES (?, ?, ?, ?)")) {
+            ps.setString(1, idEstudiante);
+            ps.setString(2, asignatura);
+            ps.setString(3, periodo);
+            ps.setDouble(4, calificacion);
+            ps.executeUpdate();
+
+            if (estadoConsulta == VISTA_COMPLETA) cargarTodo();
+            else cargarPorDNI(idEstudiante);
+        } catch (SQLException e) {
+            throw new ClassNotFoundException("Error al insertar nuevo registro", e);
+        }
+    }
+
+    public int totalCargado() {
+        return historial.size();
+    }
+
+    public void seleccionar(int pos) {
+        if (pos >= 0 && pos < historial.size()) {
+            Entrada e = historial.get(pos);
+            idEstudiante = e.id;
+            asignatura = e.materia;
+            periodo = e.ciclo;
+            calificacion = e.nota;
+        } else {
+            idEstudiante = "";
+            asignatura = "";
+            periodo = "";
+            calificacion = 0.0;
+        }
+    }
+
+    // --- EVENTOS PERSONALIZADOS ---
+
+    public static class EventoModo extends EventObject {
+        private final int tipo;
+
+        public EventoModo(Object fuente, int tipo) {
+            super(fuente);
+            this.tipo = tipo;
+        }
+
+        public int obtenerModo() {
+            return tipo;
+        }
+    }
+
+    public interface ModoListener extends EventListener {
+        void alCambiarModo(EventoModo evento);
+    }
+
+    public void registrarEscucha(ModoListener l) {
+        this.observadorModo = l;
+    }
+
+    public void eliminarEscucha(ModoListener l) {
+        if (this.observadorModo == l) this.observadorModo = null;
+    }
+
+    private void notificarCambio() {
+        if (observadorModo != null) {
+            observadorModo.alCambiarModo(new EventoModo(this, estadoConsulta));
+        }
+    }
+
+    public void añadirEscuchaCambioPropiedad(PropertyChangeListener listener) {
+        observadores.addPropertyChangeListener(listener);
+    }
+
+    public void eliminarEscuchaCambioPropiedad(PropertyChangeListener listener) {
+        observadores.removePropertyChangeListener(listener);
+    }
+}

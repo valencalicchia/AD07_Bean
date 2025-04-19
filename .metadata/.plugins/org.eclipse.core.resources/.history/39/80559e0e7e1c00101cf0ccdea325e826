@@ -1,0 +1,105 @@
+package mat;
+
+import java.util.*;
+import java.sql.*;
+import java.sql.Statement;
+import java.beans.*;
+
+public class MatriculaBean {
+    private List<Matricula> matriculas = new ArrayList<>();
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    private boolean modoFiltrado;
+
+    
+    String url = "jdbc:mysql://localhost:3307/alumnos";
+    String user = "dam7";
+    String password = "ad07";
+
+    
+    // Propiedades actuales
+    private Matricula matriculaActual;
+
+    public void seleccionarFila(int i) {
+        if (i >= 0 && i < matriculas.size()) {
+            matriculaActual = matriculas.get(i);
+        }
+    }
+
+    public void recargarDNI(String dni) {
+        matriculas.clear();
+        modoFiltrado = true;
+
+        // Cargar desde BD
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement ps = conn.prepareStatement("SELECT * FROM matriculas WHERE DNI = ?")) {
+            ps.setString(1, dni);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                matriculas.add(new Matricula(
+                    rs.getString("DNI"),
+                    rs.getString("NombreModulo"),
+                    rs.getString("Curso"),
+                    rs.getDouble("Nota")
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        pcs.firePropertyChange(new ModoCambioEvent(this, "modo", false, true));
+    }
+
+    public void recargarTodas() {
+        matriculas.clear();
+        modoFiltrado = false;
+
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery("SELECT * FROM matriculas")) {
+            while (rs.next()) {
+                matriculas.add(new Matricula(
+                    rs.getString("DNI"),
+                    rs.getString("NombreModulo"),
+                    rs.getString("Curso"),
+                    rs.getDouble("Nota")
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        pcs.firePropertyChange(new ModoCambioEvent(this, "modo", true, false));
+    }
+
+    public void addMatricula(Matricula m) {
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement ps = conn.prepareStatement("INSERT INTO matriculas VALUES (?, ?, ?, ?)")) {
+            ps.setString(1, m.getDni());
+            ps.setString(2, m.getNombreModulo());
+            ps.setString(3, m.getCurso());
+            ps.setDouble(4, m.getNota());
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener l) {
+        pcs.addPropertyChangeListener(l);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener l) {
+        pcs.removePropertyChangeListener(l);
+    }
+
+    public List<Matricula> getMatriculas() {
+        return matriculas;
+    }
+
+    public boolean isModoFiltrado() {
+        return modoFiltrado;
+    }
+}
+
+
+

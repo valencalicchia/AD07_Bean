@@ -1,0 +1,60 @@
+package prueba;
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+import mat.MatriculaBean;
+
+
+public class PruebaMatricula implements ModoCambiadoListener {
+	
+    private MatriculaBean matriculaBean;
+    
+    public static void main(String[] args) {
+    	 matriculaBean = new MatriculaBean();
+         matriculaBean.addModoCambiadoListener(this);
+         
+         // Listado completo
+         System.out.println("=== LISTADO COMPLETO ===");
+         matriculaBean.cargarTodasMatriculas();
+         imprimirMatriculas();
+         
+         // Listado por DNI
+         System.out.println("\n=== LISTADO POR DNI (12345678A) ===");
+         matriculaBean.recargarDNI("12345678A");
+         imprimirMatriculas();
+         
+         // Añadir nueva matrícula
+         System.out.println("\n=== AÑADIR NUEVA MATRÍCULA ===");
+         matriculaBean.setDNI("12345678A");
+         matriculaBean.setNombreModulo("Sistemas Informáticos");
+         matriculaBean.setCurso("23-24");
+         matriculaBean.setNota(7.8);
+         matriculaBean.addMatricula();
+         
+         // Ver resultado
+         matriculaBean.recargarDNI("12345678A");
+         imprimirMatriculas();
+    }
+    
+    private void imprimirMatriculas() {
+        int numMatriculas = matriculaBean.getModo().equals("completo") ? 
+            matriculaBean.getTodasMatriculas().size() : 
+            matriculaBean.getMatriculasDNI().size();
+            
+        for (int i = 0; i < numMatriculas; i++) {
+            matriculaBean.seleccionarFila(i);
+            System.out.printf("DNI: %s, Módulo: %s, Curso: %s, Nota: %.1f%n",
+                matriculaBean.getDNI(),
+                matriculaBean.getNombreModulo(),
+                matriculaBean.getCurso(),
+                matriculaBean.getNota());
+        }
+    }
+    
+    @Override
+    public void modoCambiado(ModoCambiadoEvent ev) {
+        System.out.println("\n[EVENTO] Modo cambiado a: " + 
+            ((MatriculaBean)ev.getSource()).getModo());
+    }
+    
+}

@@ -1,0 +1,30 @@
+package prueba;
+import java.sql.Connection;
+import java.sql.DriverManager;
+
+
+public class TestConexion {
+    public static void main(String[] args) {
+    	try {
+    	    Class.forName("com.mysql.cj.jdbc.Driver");
+    	    System.out.println("Driver cargado correctamente.");
+    	} catch (ClassNotFoundException e) {
+    	    System.out.println("NO SE ENCUENTRA EL DRIVER.");
+    	    e.printStackTrace();
+    	}
+
+    	
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/alumnos",
+                "dam7", "ad07"
+            );
+            System.out.println("✅ Conectado correctamente a MySQL.");
+            conn.close();
+        } catch (Exception e) {
+            System.err.println("❌ Error en la conexión:");
+            e.printStackTrace();
+        }
+    }
+}

@@ -1,0 +1,184 @@
+import java.util.*;
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+public class PruebaMatricula implements MatriculaBean.ModoListener {
+
+    private MatriculaBean matriculas;
+
+    // Constructor
+    public PruebaMatricula() {
+        matriculas = new MatriculaBean();
+        matriculas.addModoCambiadoListener(this);
+        System.out.println("Componente inicializado correctamente.");
+        System.out.println("-----------------------------------------------------------");
+    }
+
+    public static void main(String[] args) {
+        PruebaMatricula programa = new PruebaMatricula();
+        Scanner scanner = new Scanner(System.in);
+
+        // Listar todas las matrículas al inicio
+        programa.listarTodas();
+
+        System.out.println("\n=== AÑADIR MATRÍCULA ===");
+        System.out.print("DNI del alumno: ");
+        String dni = scanner.nextLine();
+
+        System.out.print("Nombre del módulo: ");
+        String modulo = scanner.nextLine();
+
+        System.out.print("Curso (ej: 23-24): ");
+        String curso = scanner.nextLine();
+
+        System.out.print("Nota: ");
+        double nota = comprobarNota(scanner);
+
+        programa.añadirMatricula(dni, modulo, curso, nota);
+
+        System.out.println("-----------------------------------------------------------");
+        programa.listarPorDNI(dni);
+
+        scanner.close();
+    }
+
+    public void listarTodas() {
+        try {
+            System.out.println("\n=== TODAS LAS MATRÍCULAS ===");
+            matriculas.recargarTodas();
+
+            for (int i = 0; i < matriculas.getCantidadMatriculas(); i++) {
+                matriculas.seleccionarFila(i);
+                imprimirMatricula(i + 1);
+            }
+
+            System.out.printf("\nTotal: %d matrículas\n", matriculas.getCantidadMatriculas());
+        } catch (ClassNotFoundException e) {
+            System.out.println("Error al cargar matrículas: " + e.getMessage());
+        }
+    }
+
+    public void listarPorDNI(String dni) {
+        try {
+            System.out.printf("\n=== MATRÍCULAS DE %s ===\n", dni);
+            matriculas.recargarDNI(dni);
+
+            if (matriculas.getCantidadMatriculas() == 0) {
+                System.out.println("No se encontraron matrículas para este alumno.");
+                return;
+            }
+
+            for (int i = 0; i < matriculas.getCantidadMatriculas(); i++) {
+                matriculas.seleccionarFila(i);
+                imprimirMatricula(i + 1);
+            }
+
+            System.out.printf("\nTotal: %d matrículas\n", matriculas.getCantidadMatriculas());
+        } catch (ClassNotFoundException e) {
+            System.out.println("Error al listar por DNI: " + e.getMessage());
+        }
+    }
+
+    public void añadirMatricula(String dni, String modulo, String curso, double nota) {
+        try {
+            System.out.println("-----------------------------------------------------------");
+            System.out.println("Verificando existencia del alumno...");
+
+            matriculas.setDNI(dni);
+
+            if (!matriculas.existeAlumno(dni)) {
+                System.err.println("✖ El alumno con DNI " + dni + " no existe.");
+                return;
+            }
+
+            matriculas.setNombreModulo(modulo);
+            matriculas.setCurso(curso);
+            matriculas.setNota(nota);
+            matriculas.addMatricula();
+
+            System.out.println("✓ Matrícula añadida correctamente.");
+        } catch (ClassNotFoundException e) {
+            System.out.println("Error técnico al añadir matrícula: " + e.getMessage());
+        }
+    }
+
+    private void imprimirMatricula(int numero) {
+        System.out.println("Matrícula " + numero + ":");
+        System.out.println("\tDNI: " + matriculas.getDNI());
+        System.out.println("\tMódulo: " + matriculas.getNombreModulo());
+        System.out.println("\tCurso: " + matriculas.getCurso());
+        System.out.println("\tNota: " + matriculas.getNota());
+    }
+
+    @Override
+    public void capturarModoCambiado(ModoCambiadoEvent ev) {
+        System.out.println("\n[EVENTO] Vista actual: " +
+            (ev.getModo() == MatriculaBean.MODO_TODOS ? "TODAS LAS MATRÍCULAS" : "SOLO UN ALUMNO") + "\n");
+    }
+
+    public static double comprobarNota(Scanner scanner) {
+        while (true) {
+            try {
+                double nota = scanner.nextDouble();
+                scanner.nextLine(); // Limpiar el buffer
+                return nota;
+            } catch (InputMismatchException e) {
+                System.out.println("✖ Nota inválida. Introduce un número (ej: 7.5)");
+                scanner.nextLine();
+            }
+        }
+    }
+
+    // INTERFACES Y EVENTOS (anidados para que sea una sola clase)
+
+    public interface ModoCambiadoListener extends java.util.EventListener {
+        void capturarModoCambiado(ModoCambiadoEvent ev);
+    }
+
+    public static class ModoCambiadoEvent extends java.util.EventObject {
+        private final int modo;
+
+        public ModoCambiadoEvent(Object source, int modo) {
+            super(source);
+            this.modo = modo;
+        }
+
+        public int getModo() {
+            return modo;
+        }
+    }
+
+    // Simulación de MatriculaBean solo para compilar (debes usar tu clase real en el proyecto)
+    public static class MatriculaBean {
+        public static final int MODO_TODOS = 0;
+        public static final int MODO_DNI = 1;
+
+        private String dni, nombreModulo, curso;
+        private double nota;
+        private List<String> dummy = new ArrayList<>();
+        private ModoCambiadoListener listener;
+
+        public void recargarTodas() { dummy = Arrays.asList("1", "2", "3"); if (listener != null) listener.capturarModoCambiado(new ModoCambiadoEvent(this, MODO_TODOS)); }
+        public void recargarDNI(String d) { dummy = Arrays.asList("1"); if (listener != null) listener.capturarModoCambiado(new ModoCambiadoEvent(this, MODO_DNI)); }
+
+        public void seleccionarFila(int i) { dni = "123"; nombreModulo = "Programación"; curso = "23-24"; nota = 8.5; }
+
+        public boolean existeAlumno(String dni) { return true; } // Simulación
+
+        public void addMatricula() {}
+
+        public void setDNI(String dni) { this.dni = dni; }
+        public void setNombreModulo(String mod) { this.nombreModulo = mod; }
+        public void setCurso(String cur) { this.curso = cur; }
+        public void setNota(double nota) { this.nota = nota; }
+
+        public String getDNI() { return dni; }
+        public String getNombreModulo() { return nombreModulo; }
+        public String getCurso() { return curso; }
+        public double getNota() { return nota; }
+
+        public int getCantidadMatriculas() { return dummy.size(); }
+
+        public void addModoCambiadoListener(ModoCambiadoListener l) { this.listener = l; }
+    }
+}

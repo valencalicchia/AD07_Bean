@@ -1,0 +1,10 @@
+/**
+ * 
+ */
+/**
+ * 
+ */
+module Prueba {
+	requires AD7Bean;
+	requires java.sql;
+}

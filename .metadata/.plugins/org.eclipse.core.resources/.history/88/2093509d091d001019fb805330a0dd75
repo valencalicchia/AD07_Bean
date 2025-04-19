@@ -1,0 +1,233 @@
+package mat;
+
+import java.io.Serializable;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EventListener;
+import java.util.EventObject;
+import java.util.List;
+
+public class AD7Bean implements Serializable {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	// Propiedades
+    private String DNI;
+    private String nombreModulo;
+    private String curso;
+    private double nota;
+    private String modo;
+    
+    // Estructuras internas
+    private List<Matricula> matriculas;
+    private Connection conexion;
+    
+    // Gestión de eventos
+    private transient ModoCambiadoListener receptor;
+    
+    // Constructor
+    public AD7Bean() {
+        matriculas = new ArrayList<>();
+        conectarBD();
+    }
+    
+    // Métodos de conexión a BD
+    private void conectarBD() {
+        try {
+            // Para MySQL 8.0+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            
+            String url = "jdbc:mysql://localhost/alumnos";
+            String user = "dam7";
+            String pwd = "ad07";
+            
+            conexion = DriverManager.getConnection(url, user, pwd);
+            System.out.println("Conexión establecida correctamente en puerto 3306");
+        } catch (Exception e) {
+            System.err.println("Error al conectar con MySQL:");
+            e.printStackTrace();
+            throw new RuntimeException("No se pudo establecer conexión con la base de datos", e);
+        }
+    }
+    
+    // Métodos para propiedades
+    public String getDNI() { return DNI; }
+    public void setDNI(String DNI) { this.DNI = DNI; }
+    
+    public String getNombreModulo() { return nombreModulo; }
+    public void setNombreModulo(String nombreModulo) { this.nombreModulo = nombreModulo; }
+    
+    public String getCurso() { return curso; }
+    public void setCurso(String curso) { this.curso = curso; }
+    
+    public double getNota() { return nota; }
+    public void setNota(double nota) { this.nota = nota; }
+    
+ // Método para obtener todas las matrículas (modo completo)
+    public List<Matricula> getTodasMatriculas() {
+        if ("completo".equals(modo)) {
+            return new ArrayList<>(matriculas); // Devuelve copia para proteger los datos internos
+        }
+        return Collections.emptyList();
+    }
+
+    // Método para obtener matrículas por DNI (modo específico)
+    public List<Matricula> getMatriculasDNI() {
+        if ("por DNI".equals(modo)) {
+            return new ArrayList<>(matriculas); // Devuelve copia para proteger los datos internos
+        }
+        return Collections.emptyList();
+    }
+    
+    public String getModo() { return modo; }
+    private void setModo(String modo) { 
+        this.modo = modo;
+        if (receptor != null) {
+            receptor.modoCambiado(new ModoCambiadoEvent(this));
+        }
+    }
+    
+    // Métodos principales
+    public void cargarTodasMatriculas() {
+        matriculas.clear();
+        try {
+        	
+        	if (conexion == null) {
+                System.err.println("Error: No hay conexión a la base de datos.");
+                return;
+            }
+        	
+            Statement stmt = conexion.createStatement();
+            ResultSet rs = stmt.executeQuery(
+                "SELECT * FROM matriculas ORDER BY DNI");
+            
+            while (rs.next()) {
+                matriculas.add(new Matricula(
+                    rs.getString("DNI"),
+                    rs.getString("NombreModulo"),
+                    rs.getString("Curso"),
+                    rs.getDouble("Nota")
+                ));
+            }
+            setModo("completo");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void recargarDNI(String dni) {
+        matriculas.clear();
+        try {
+        	if (conexion == null) {
+                System.err.println("Error: No hay conexión a la base de datos.");
+                return;
+            }
+            PreparedStatement stmt = conexion.prepareStatement(
+                "SELECT * FROM matriculas WHERE DNI = ?");
+            stmt.setString(1, dni);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                matriculas.add(new Matricula(
+                    rs.getString("DNI"),
+                    rs.getString("NombreModulo"),
+                    rs.getString("Curso"),
+                    rs.getDouble("Nota")
+                ));
+            }
+            setModo("por DNI");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void seleccionarFila(int i) {
+        if (i >= 0 && i < matriculas.size()) {
+            Matricula m = matriculas.get(i);
+            this.DNI = m.getDNI();
+            this.nombreModulo = m.getNombreModulo();
+            this.curso = m.getCurso();
+            this.nota = m.getNota();
+        }
+    }
+    
+    public void addMatricula() {
+        try {
+        	
+        	if (conexion == null) {
+                System.err.println("Error: No hay conexión a la base de datos.");
+                return;
+            }
+            PreparedStatement stmt = conexion.prepareStatement(
+                "INSERT INTO matriculas VALUES (?, ?, ?, ?)");
+            stmt.setString(1, DNI);
+            stmt.setString(2, nombreModulo);
+            stmt.setString(3, curso);
+            stmt.setDouble(4, nota);
+            stmt.executeUpdate();
+            
+            // Recargar según el modo actual
+            if ("por DNI".equals(modo)) {
+                recargarDNI(DNI);
+            } else {
+                cargarTodasMatriculas();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    // Métodos para eventos
+    public void addModoCambiadoListener(ModoCambiadoListener listener) {
+        this.receptor = listener;
+    }
+    
+    public void removeModoCambiadoListener(ModoCambiadoListener listener) {
+        if (this.receptor == listener) {
+            this.receptor = null;
+        }
+    }
+    
+    // Clase interna para representar matrículas
+    public class Matricula implements Serializable {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		private String DNI;
+        private String nombreModulo;
+        private String curso;
+        private double nota;
+        
+        public Matricula(String DNI, String nombreModulo, String curso, double nota) {
+            this.DNI = DNI;
+            this.nombreModulo = nombreModulo;
+            this.curso = curso;
+            this.nota = nota;
+        }
+        
+        // Getters
+        public String getDNI() { return DNI; }
+        public String getNombreModulo() { return nombreModulo; }
+        public String getCurso() { return curso; }
+        public double getNota() { return nota; }
+    }
+    
+    public class ModoCambiadoEvent extends EventObject {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public ModoCambiadoEvent(Object source) {
+            super(source);
+        }
+    }
+    
+    public interface ModoCambiadoListener extends EventListener {
+        void modoCambiado(ModoCambiadoEvent ev);
+    }
+}
+

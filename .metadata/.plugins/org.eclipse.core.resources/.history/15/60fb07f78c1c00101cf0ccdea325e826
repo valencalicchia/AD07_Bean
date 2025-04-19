@@ -1,0 +1,8 @@
+package mat;
+
+
+import java.util.EventListener;
+
+public interface ModoCambiadoListener extends EventListener {
+    void modoCambiado(ModoCambiadoEvent ev);
+}

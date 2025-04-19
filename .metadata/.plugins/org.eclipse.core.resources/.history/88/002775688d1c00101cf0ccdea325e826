@@ -1,0 +1,10 @@
+/**
+ * 
+ */
+/**
+ * 
+ */
+module Prueba {
+	requires MatriculaBean;
+	requires java.sql;
+}

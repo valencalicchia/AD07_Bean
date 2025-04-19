@@ -1,0 +1,9 @@
+package mat;
+
+import java.util.EventObject;
+
+public class ModoCambiadoEvent extends EventObject {
+    public ModoCambiadoEvent(Object source) {
+        super(source);
+    }
+}

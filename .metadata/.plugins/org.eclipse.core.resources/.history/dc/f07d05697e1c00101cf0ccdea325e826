@@ -1,0 +1,8 @@
+package mat;
+import java.beans.PropertyChangeEvent;
+
+public class ModoCambioEvent extends PropertyChangeEvent {
+    public ModoCambioEvent(Object source, String propertyName, Object oldValue, Object newValue) {
+        super(source, propertyName, oldValue, newValue);
+    }
+}

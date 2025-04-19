@@ -1,0 +1,68 @@
+package prueba;
+import java.util.List;
+
+import mat.AD7Bean;
+import mat.AD7Bean.Matricula;
+import mat.AD7Bean.ModoCambiadoEvent;
+
+
+
+public class PruebaMatricula implements AD7Bean.ModoCambiadoListener {
+    private AD7Bean matriculaBean;
+    
+    public PruebaMatricula() {
+        matriculaBean = new AD7Bean();
+        matriculaBean.addModoCambiadoListener(this);
+        
+        // Listado completo
+        System.out.println("=== LISTADO COMPLETO ===");
+        matriculaBean.cargarTodasMatriculas();
+        imprimirMatriculas();
+        
+        // Listado por DNI
+        System.out.println("\n=== LISTADO POR DNI (12345678A) ===");
+        matriculaBean.recargarDNI("12345678A");
+        imprimirMatriculas();
+        
+        // Añadir nueva matrícula
+        System.out.println("\n=== AÑADIR NUEVA MATRÍCULA ===");
+        matriculaBean.setDNI("12345678A");
+        matriculaBean.setNombreModulo("Sistemas Informáticos");
+        matriculaBean.setCurso("23-24");
+        matriculaBean.setNota(7.8);
+        matriculaBean.addMatricula();
+        
+        // Ver resultado
+        matriculaBean.recargarDNI("12345678A");
+        imprimirMatriculas();
+    }
+    
+    private void imprimirMatriculas() {
+        List<Matricula> lista;
+        
+        if (matriculaBean.getModo().equals("completo")) {
+            lista = matriculaBean.getTodasMatriculas();
+        } else {
+            lista = matriculaBean.getMatriculasDNI();
+        }
+        
+        for (Matricula m : lista) {
+            System.out.printf("DNI: %s, Módulo: %s, Curso: %s, Nota: %.1f%n",
+                m.getDNI(),
+                m.getNombreModulo(),
+                m.getCurso(),
+                m.getNota());
+        }
+    }
+    
+    @Override
+    public void modoCambiado(ModoCambiadoEvent ev) {
+        System.out.println("\n[EVENTO] Modo cambiado a: " + 
+            ((AD7Bean)ev.getSource()).getModo());
+    }
+    
+    public static void main(String[] args) {
+        new PruebaMatricula();
+    }
+
+}

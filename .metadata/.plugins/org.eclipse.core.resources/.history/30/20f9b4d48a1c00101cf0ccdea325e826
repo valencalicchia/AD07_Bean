@@ -1,0 +1,33 @@
+package prueba;
+
+
+public class PruebaMatricula {
+    public static void main(String[] args) {
+    	MatriculaBean gestor = new MatriculaBean();
+
+        gestor.addPropertyChangeListener(evt -> {
+            if (evt instanceof ModoCambioEvent) {
+                System.out.println(">>> Cambio de modo: " + (gestor.isModoFiltrado() ? "Filtrado por DNI" : "Todos los alumnos"));
+            }
+        });
+
+        // Listado completo
+        System.out.println("Matriculas completas:");
+        gestor.recargarTodas();
+        for (Matricula m : gestor.getMatriculas()) {
+            System.out.println(m.getDni() + " - " + m.getNombreModulo() + " - " + m.getCurso() + " - " + m.getNota());
+        }
+
+        // Listado por DNI
+        System.out.println("\nMatriculas de '12345678A':");
+        gestor.recargarDNI("12345678A");
+        for (Matricula m : gestor.getMatriculas()) {
+            System.out.println(m.getDni() + " - " + m.getNombreModulo() + " - " + m.getCurso() + " - " + m.getNota());
+        }
+
+        // Añadir matrícula nueva
+        Matricula nueva = new Matricula("96385274F", "Sistemas Informáticos", "24-25", 8.0);
+        gestor.addMatricula(nueva);
+        System.out.println("\n>> Matrícula nueva añadida.");
+    }
+}
